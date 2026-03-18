@@ -180,8 +180,8 @@ export default function HeroSection() {
               </div>
 
               {/* WhatsApp order notification */}
-              <div className="absolute -bottom-5 -right-2 md:-right-5
-                              bg-white rounded-2xl shadow-2xl p-3 md:p-4 w-56 md:w-64 z-10">
+              <div className="absolute -top-4 -right-2 md:-bottom-5 md:top-auto md:-right-5
+                              bg-white rounded-2xl shadow-2xl p-3 md:p-4 w-48 md:w-60 z-10">
                 <div className="flex items-start gap-2.5">
                   <div className="w-9 h-9 bg-green-500 rounded-xl flex items-center justify-center shrink-0">
                     <svg viewBox="0 0 24 24" className="w-5 h-5 fill-white">
