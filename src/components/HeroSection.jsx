@@ -246,13 +246,20 @@ export default function HeroSection() {
               <span className="text-primary font-bold">₹8,000</span>
             </p>
           </div>
-          <a href={waUrl} target="_blank" rel="noopener noreferrer"
-            className="shrink-0 bg-primary hover:bg-orange-600 text-white font-bold
-                       px-6 py-3 rounded-xl text-sm transition-all active:scale-95
-                       shadow-lg shadow-primary/30 whitespace-nowrap
-                       flex items-center justify-center gap-2">
-            💬 Let's Talk — Free Consultation
-          </a>
+          <div className="flex flex-col items-center md:items-end gap-2 shrink-0">
+            <a href={waUrl} target="_blank" rel="noopener noreferrer"
+              className="bg-primary hover:bg-orange-600 text-white font-bold
+                         px-6 py-3 rounded-xl text-sm transition-all active:scale-95
+                         shadow-lg shadow-primary/30 whitespace-nowrap
+                         flex items-center justify-center gap-2 w-full">
+              💬 Let's Talk — Free Consultation
+            </a>
+            <a href="https://www.ariartech.com" target="_blank" rel="noopener noreferrer"
+              className="text-white/40 hover:text-primary text-xs font-medium
+                         transition-colors flex items-center gap-1">
+              🌐 www.ariartech.com ↗
+            </a>
+          </div>
         </div>
 
       </div>
