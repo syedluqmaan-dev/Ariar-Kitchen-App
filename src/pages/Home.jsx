@@ -1,6 +1,6 @@
 import HeroSection from '../components/HeroSection'
 import ProblemSection from '../components/Problems.jsx'
-import FAQSection from '../components/Faqsection.jsx'
+import FAQSection from '../components/FAQSection.jsx'
 import FinalCTASection from '../components/FinalCTASection'
 
 export default function Home() {
