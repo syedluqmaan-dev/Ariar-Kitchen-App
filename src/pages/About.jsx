@@ -56,10 +56,10 @@ export default function About() {
               <div className="flex items-center gap-4 mt-4 mb-5">
                 <div className="w-14 h-14 md:w-16 md:h-16 bg-primary rounded-full flex items-center
                                 justify-center text-white font-display font-bold text-xl shrink-0">
-                  AK
+                  Sl
                 </div>
                 <div>
-                  <h2 className="font-bold text-secondary text-base md:text-lg">Ariar Rasheed</h2>
+                  <h2 className="font-bold text-secondary text-base md:text-lg">Syed Luqmaan</h2>
                   <p className="text-gray-500 text-sm">Founder & Head Chef</p>
                 </div>
               </div>

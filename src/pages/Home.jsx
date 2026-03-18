@@ -1,11 +1,20 @@
 import HeroSection from '../components/HeroSection'
-import RestaurantInfo from '../components/RestaurantInfo'
+import ProblemSection from '../components/Problemsection.jsx'
+import PricingSection from '../components/PricingSection'
+import FAQSection from '../components/Faqsection.jsx'
+import FinalCTASection from '../components/FinalCTASection'
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <HeroSection />
-      <RestaurantInfo />
+      <ProblemSection />
+
+
+
+      {/* <PricingSection /> */}
+      <FAQSection />
+      <FinalCTASection />
     </div>
   )
 }
