@@ -1,4 +1,5 @@
-export default function BenefitsSection() {
+
+export default function Product() {
   const before = [
     { icon: '📞', title: 'Order chaos',    desc: 'Calls, DMs, WhatsApp — all scattered' },
     { icon: '😵', title: 'No system',      desc: 'Manual notes, wrong orders, missed messages' },
@@ -161,3 +162,4 @@ export default function BenefitsSection() {
     </section>
   )
 }
+
