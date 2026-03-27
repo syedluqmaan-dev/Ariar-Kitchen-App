@@ -1,4 +1,4 @@
-export default function ProblemBenefitsSection() {
+export default function BenefitsSection() {
   const before = [
     { icon: '📞', title: 'Order chaos',    desc: 'Calls, DMs, WhatsApp — all scattered' },
     { icon: '😵', title: 'No system',      desc: 'Manual notes, wrong orders, missed messages' },
