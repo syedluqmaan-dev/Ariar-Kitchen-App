@@ -8,22 +8,20 @@ import Menu from './pages/Menu'
 import Cart from './pages/Cart'
 import About from './pages/About'
 import Contact from './pages/Contact'
-
 import { Toaster } from 'react-hot-toast'
 
 function App() {
   return (
     <Router>
       <CartProvider>
-        <div className="min-h-screen bg-gray-50">
+        <div className="bg-[#0f0f0f]">
           <Navbar />
           <Routes>
-            <Route path="/"      element={<Home />} />
-            <Route path="/menu"  element={<Menu />} />
-            <Route path="/cart"  element={<Cart />} />
-            <Route path="/about" element={<About />} />
+            <Route path="/"       element={<Home />} />
+            <Route path="/menu"   element={<Menu />} />
+            <Route path="/cart"   element={<Cart />} />
+            <Route path="/about"  element={<About />} />
             <Route path="/contact" element={<Contact />} />
-           
           </Routes>
           <FloatingCart />
           <Toaster

@@ -1,122 +1,146 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { useCart } from '../context/CartContext'
-import { restaurant } from '../data/restaurantConfig'
-import { sendOrderToWhatsApp } from '../utils/whatsappOrderGenerator'
-import CartItem from '../components/CartItem'
-import toast from 'react-hot-toast'
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useCart } from '../context/CartContext';
+import { restaurant } from '../data/restaurantConfig';
+import { sendOrderToWhatsApp } from '../utils/whatsappOrderGenerator';
+import CartItem from '../components/CartItem';
+import toast from 'react-hot-toast';
 
-const STEPS = ['Cart', 'Details', 'Payment']
+const STEPS = ['Cart', 'Details', 'Payment'];
+
+// --- Field Component (Moved outside for performance) ---
+const Field = ({ name, label, type = 'text', placeholder, maxLength, required, value, onChange, onBlur, touched, error }) => (
+  <div>
+    <label className="text-xs font-bold text-gray-600 mb-1.5 flex items-center gap-1 block">
+      {label}
+      {required && <span className="text-red-500 text-sm leading-none">*</span>}
+    </label>
+    <input
+      type={type}
+      name={name}
+      placeholder={placeholder}
+      value={value}
+      onChange={onChange}
+      onBlur={onBlur}
+      maxLength={maxLength}
+      className={`w-full px-3.5 py-3 bg-gray-50 border rounded-xl text-sm
+                 placeholder-gray-400 focus:outline-none focus:ring-2 transition-all
+                 ${touched && error
+                   ? 'border-red-300 focus:ring-red-100 bg-red-50'
+                   : 'border-gray-200 focus:ring-orange-200 focus:border-primary'}`}
+    />
+    {touched && error && (
+      <p className="text-red-500 text-[11px] mt-1 flex items-center gap-1">
+        <span>⚠️</span> {error}
+      </p>
+    )}
+  </div>
+);
+// --- End Field Component ---
 
 export default function Cart() {
-  const { cart, totals, clearCart } = useCart()
-  const [step, setStep] = useState(0)
-  const [deliveryType, setDeliveryType] = useState('delivery')
-  const [payment, setPayment] = useState('')
-  const [details, setDetails] = useState({ name: '', phone: '', address: '', note: '' })
-  const [locating, setLocating] = useState(false)
-  const [touched, setTouched] = useState({})
+  const { cart, totals, clearCart } = useCart();
+  const [step, setStep] = useState(0);
+  const [deliveryType, setDeliveryType] = useState('delivery');
+  const [payment, setPayment] = useState('');
+  const [details, setDetails] = useState({ name: '', phone: '', address: '', note: '' });
+  const [locating, setLocating] = useState(false);
+  const [touched, setTouched] = useState({});
 
   const onChange = e => {
-    setDetails(p => ({ ...p, [e.target.name]: e.target.value }))
-    setTouched(p => ({ ...p, [e.target.name]: true }))
-  }
-  const onBlur = e => setTouched(p => ({ ...p, [e.target.name]: true }))
+    setDetails(p => ({ ...p, [e.target.name]: e.target.value }));
+    setTouched(p => ({ ...p, [e.target.name]: true }));
+  };
+  const onBlur = e => setTouched(p => ({ ...p, [e.target.name]: true }));
 
-  const finalTotal = deliveryType === 'pickup' ? totals.subtotal : totals.total
-  const deliveryFee = deliveryType === 'pickup' ? 0 : totals.deliveryFee
+  // Safely calculate totals with fallbacks
+  const safeSubtotal = totals?.subtotal ?? 0;
+  const safeDeliveryFee = totals?.deliveryFee ?? 0;
+  const finalTotal = deliveryType === 'pickup' ? safeSubtotal : (totals?.total ?? safeSubtotal + safeDeliveryFee);
+  const deliveryFee = deliveryType === 'pickup' ? 0 : safeDeliveryFee;
 
   // field errors
   const errors = {
     name: !details.name.trim() ? 'Name is required' : '',
     phone: !/^\d{10}$/.test(details.phone.trim()) ? 'Enter valid 10-digit number' : '',
     address: deliveryType === 'delivery' && !details.address.trim() ? 'Address is required' : '',
-  }
-  const hasErrors = Object.values(errors).some(Boolean)
+  };
+  const hasErrors = Object.values(errors).some(Boolean);
 
   // ── GPS ──────────────────────────────────────────
   const handleUseLocation = () => {
-    if (!navigator.geolocation) { toast.error('Geolocation not supported'); return }
-    setLocating(true)
-    toast('Fetching your location...', { icon: '📍' })
+    if (!navigator.geolocation) {
+      toast.error('Geolocation not supported');
+      return;
+    }
+    setLocating(true);
+    toast('Fetching your location...', { icon: '📍' });
+
+    // Safety timeout to reset loading state if something fails
+    const safetyTimeout = setTimeout(() => {
+      if (locating) {
+        setLocating(false);
+        toast.error('Location request timed out. Please try again.');
+      }
+    }, 15000);
+
     navigator.geolocation.getCurrentPosition(
       async ({ coords: { latitude, longitude } }) => {
+        clearTimeout(safetyTimeout);
         try {
           const res = await fetch(
             `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
             { headers: { 'Accept-Language': 'en' } }
-          )
-          const data = await res.json()
-          const a = data.address
+          );
+          const data = await res.json();
+          const a = data.address;
           const parts = [
             a.house_number, a.road || a.pedestrian,
             a.neighbourhood || a.suburb,
             a.city || a.town || a.village,
             a.state, a.postcode
-          ].filter(Boolean)
-          setDetails(p => ({ ...p, address: parts.join(', ') }))
-          setTouched(p => ({ ...p, address: true }))
-          toast.success('Location fetched!')
+          ].filter(Boolean);
+          setDetails(p => ({ ...p, address: parts.join(', ') }));
+          setTouched(p => ({ ...p, address: true }));
+          toast.success('Location fetched!');
         } catch {
-          setDetails(p => ({ ...p, address: `${latitude.toFixed(5)}, ${longitude.toFixed(5)}` }))
-          toast.success('Location fetched!')
-        } finally { setLocating(false) }
+          setDetails(p => ({ ...p, address: `${latitude.toFixed(5)}, ${longitude.toFixed(5)}` }));
+          toast.success('Location fetched (approx coordinates)');
+        } finally {
+          setLocating(false);
+        }
       },
       err => {
-        setLocating(false)
-        const msgs = { 1: 'Permission denied.', 2: 'Location unavailable.', 3: 'Request timed out.' }
-        toast.error(msgs[err.code] || 'Could not get location.')
+        clearTimeout(safetyTimeout);
+        setLocating(false);
+        const msgs = { 1: 'Permission denied.', 2: 'Location unavailable.', 3: 'Request timed out.' };
+        toast.error(msgs[err.code] || 'Could not get location.');
       },
       { timeout: 10000, maximumAge: 60000 }
-    )
-  }
+    );
+  };
 
   const handleDetailsNext = () => {
     // touch all fields to show errors
-    setTouched({ name: true, phone: true, address: true })
-    if (hasErrors) return toast.error('Please fill all required fields')
-    if (!totals.minOrderMet) return toast.error(`Minimum order ₹${restaurant.minOrderAmount}`)
-    setStep(2)
-  }
+    setTouched({ name: true, phone: true, address: true });
+    if (hasErrors) return toast.error('Please fill all required fields');
+    if (!(totals?.minOrderMet ?? false)) return toast.error(`Minimum order ₹${restaurant.minOrderAmount}`);
+    setStep(2);
+  };
 
   const handlePlaceOrder = () => {
-    if (!payment) return toast.error('Please select a payment method')
-    sendOrderToWhatsApp(cart, { ...details, deliveryType, payment }, { ...totals, deliveryFee, total: finalTotal })
-    toast.success('Opening WhatsApp...')
-  }
-
-  // ── Input component ──────────────────────────────
-  const Field = ({ name, label, type = 'text', placeholder, maxLength, required }) => (
-    <div>
-      <label className="text-xs font-bold text-gray-600 mb-1.5 flex items-center gap-1 block">
-        {label}
-        {required && <span className="text-red-500 text-sm leading-none">*</span>}
-      </label>
-      <input
-        type={type} name={name} placeholder={placeholder}
-        value={details[name]} onChange={onChange} onBlur={onBlur}
-        maxLength={maxLength}
-        className={`w-full px-3.5 py-3 bg-gray-50 border rounded-xl text-sm
-                   placeholder-gray-400 focus:outline-none focus:ring-2 transition-all
-                   ${touched[name] && errors[name]
-                     ? 'border-red-300 focus:ring-red-100 bg-red-50'
-                     : 'border-gray-200 focus:ring-orange-200 focus:border-primary'}`}
-      />
-      {touched[name] && errors[name] && (
-        <p className="text-red-500 text-[11px] mt-1 flex items-center gap-1">
-          <span>⚠️</span> {errors[name]}
-        </p>
-      )}
-    </div>
-  )
+    if (!payment) return toast.error('Please select a payment method');
+    sendOrderToWhatsApp(cart, { ...details, deliveryType, payment }, { ...totals, deliveryFee, total: finalTotal });
+    toast.success('Opening WhatsApp...');
+  };
 
   // ── Step bar ─────────────────────────────────────
   const StepBar = () => (
-    <div className="flex items-center justify-center gap-0 mb-6">
+    <div className="flex items-center justify-center gap-0 mb-8">
       {STEPS.map((s, i) => (
         <div key={s} className="flex items-center">
           <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all
-            ${i === step ? 'bg-primary text-white' :
+            ${i === step ? 'bg-primary text-white shadow-sm' :
               i < step ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'}`}>
             {i < step ? '✓' : i + 1} {s}
           </div>
@@ -126,7 +150,7 @@ export default function Cart() {
         </div>
       ))}
     </div>
-  )
+  );
 
   // ── Empty cart ───────────────────────────────────
   if (cart.length === 0) {
@@ -143,7 +167,7 @@ export default function Cart() {
           </Link>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -152,17 +176,25 @@ export default function Cart() {
 
         {/* ── Header ──────────────────────────────── */}
         <div className="bg-white border-b border-gray-100 px-4 py-4 flex items-center gap-3 sticky top-0 z-20 shadow-sm">
-          <button onClick={() => step > 0 ? setStep(s => s - 1) : window.history.back()}
-            className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100
-                       hover:bg-gray-200 text-gray-600 transition-colors text-lg">
-            ←
-          </button>
+          {step > 0 ? (
+            <button onClick={() => setStep(s => s - 1)}
+              className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100
+                         hover:bg-gray-200 text-gray-600 transition-colors text-lg">
+              ←
+            </button>
+          ) : (
+            <Link to="/menu"
+              className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100
+                         hover:bg-gray-200 text-gray-600 transition-colors text-lg">
+              ←
+            </Link>
+          )}
           <div>
             <h1 className="font-display font-bold text-gray-900 text-lg leading-none">
               {step === 0 ? 'Your Cart' : step === 1 ? 'Delivery Details' : 'Payment'}
             </h1>
             <p className="text-gray-400 text-xs mt-0.5">
-              {cart.length} item{cart.length !== 1 ? 's' : ''} · ₹{finalTotal}
+              {cart.length} {cart.length === 1 ? 'item' : 'items'} · ₹{finalTotal.toFixed(2)}
             </p>
           </div>
         </div>
@@ -175,14 +207,14 @@ export default function Cart() {
           ══════════════════════════════════════ */}
           {step === 0 && (
             <div className="md:grid md:grid-cols-5 md:gap-6">
-              <div className="md:col-span-3 space-y-3">
+              <div className="md:col-span-3 space-y-4">
 
                 {/* Delivery toggle */}
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
                   <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">Order Type</p>
                   <div className="grid grid-cols-2 gap-2">
                     {[
-                      { key: 'delivery', icon: '🛵', label: 'Home Delivery', sub: `+₹${totals.deliveryFee} fee` },
+                      { key: 'delivery', icon: '🛵', label: 'Home Delivery', sub: `+₹${safeDeliveryFee} fee` },
                       { key: 'pickup',   icon: '🏃', label: 'Self Pickup',   sub: 'No delivery fee' },
                     ].map(opt => (
                       <button key={opt.key} onClick={() => setDeliveryType(opt.key)}
@@ -220,39 +252,39 @@ export default function Cart() {
               </div>
 
               {/* Bill summary */}
-              <div className="md:col-span-2 mt-3 md:mt-0">
+              <div className="md:col-span-2 mt-4 md:mt-0">
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 md:sticky md:top-24">
                   <h2 className="font-semibold text-gray-800 text-sm mb-3">Bill Summary</h2>
                   <div className="space-y-2.5 text-sm">
                     <div className="flex justify-between text-gray-600">
-                      <span>Item Total</span><span>₹{totals.subtotal}</span>
+                      <span>Item Total</span><span>₹{safeSubtotal.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between text-gray-600">
                       <span>Delivery Fee</span>
                       <span className={deliveryFee === 0 ? 'text-green-600 font-semibold' : ''}>
-                        {deliveryFee > 0 ? `₹${deliveryFee}` : 'FREE'}
+                        {deliveryFee > 0 ? `₹${deliveryFee.toFixed(2)}` : 'FREE'}
                       </span>
                     </div>
-                    {deliveryType === 'pickup' && (
+                    {deliveryType === 'pickup' && safeDeliveryFee > 0 && (
                       <div className="bg-green-50 rounded-xl px-3 py-2 text-green-700 text-xs font-medium">
-                        🎉 You save ₹{totals.deliveryFee} with self pickup!
+                        🎉 You save ₹{safeDeliveryFee.toFixed(2)} with self pickup!
                       </div>
                     )}
                     <div className="pt-2 border-t border-gray-100 flex justify-between font-bold text-gray-900">
                       <span>Total</span>
-                      <span className="text-primary text-base">₹{finalTotal}</span>
+                      <span className="text-primary text-base">₹{finalTotal.toFixed(2)}</span>
                     </div>
                   </div>
 
-                  {!totals.minOrderMet && (
+                  {!(totals?.minOrderMet ?? false) && (
                     <div className="mt-3 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2.5">
                       <p className="text-amber-700 text-xs font-medium">
-                        ⚠️ Add ₹{restaurant.minOrderAmount - totals.subtotal} more for minimum order
+                        ⚠️ Add ₹{restaurant.minOrderAmount - safeSubtotal} more for minimum order
                       </p>
                     </div>
                   )}
 
-                  <button onClick={() => setStep(1)} disabled={!totals.minOrderMet}
+                  <button onClick={() => setStep(1)} disabled={!(totals?.minOrderMet ?? false)}
                     className="mt-4 w-full bg-primary hover:bg-orange-600 disabled:bg-gray-200
                                disabled:text-gray-400 disabled:cursor-not-allowed text-white
                                font-bold py-3.5 rounded-xl transition-all active:scale-[0.98]
@@ -269,7 +301,7 @@ export default function Cart() {
           ══════════════════════════════════════ */}
           {step === 1 && (
             <div className="md:grid md:grid-cols-5 md:gap-6">
-              <div className="md:col-span-3 space-y-3">
+              <div className="md:col-span-3 space-y-4">
 
                 {/* Required fields notice */}
                 <div className="bg-orange-50 border border-orange-100 rounded-xl px-4 py-2.5
@@ -282,13 +314,34 @@ export default function Cart() {
 
                 {/* Name */}
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-                  <Field name="name" label="👤 Your Name" placeholder="e.g. Ahmed Khan" required />
+                  <Field
+                    name="name"
+                    label="👤 Your Name"
+                    placeholder="e.g. Ahmed Khan"
+                    required
+                    value={details.name}
+                    onChange={onChange}
+                    onBlur={onBlur}
+                    touched={touched.name}
+                    error={errors.name}
+                  />
                 </div>
 
                 {/* Phone */}
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-                  <Field name="phone" label="📞 Phone Number" type="tel"
-                    placeholder="10-digit mobile number" maxLength={10} required />
+                  <Field
+                    name="phone"
+                    label="📞 Phone Number"
+                    type="tel"
+                    placeholder="10-digit mobile number"
+                    maxLength={10}
+                    required
+                    value={details.phone}
+                    onChange={onChange}
+                    onBlur={onBlur}
+                    touched={touched.phone}
+                    error={errors.phone}
+                  />
                 </div>
 
                 {/* Address */}
@@ -330,7 +383,7 @@ export default function Cart() {
                 ) : (
                   <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4">
                     <p className="text-xs font-bold text-blue-700 mb-1">🏃 Self Pickup</p>
-                    <p className="text-blue-600 text-sm font-medium">{restaurant.address}</p>
+                    <p className="text-blue-600 text-sm font-medium">{restaurant?.address ?? 'Address not provided'}</p>
                     <p className="text-blue-500 text-xs mt-1">
                       Your order will be ready — we'll confirm via WhatsApp
                     </p>
@@ -353,7 +406,7 @@ export default function Cart() {
               </div>
 
               {/* Order summary */}
-              <div className="md:col-span-2 mt-3 md:mt-0">
+              <div className="md:col-span-2 mt-4 md:mt-0">
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 md:sticky md:top-24">
                   <h2 className="font-semibold text-gray-800 text-sm mb-3">Order Summary</h2>
                   <div className="space-y-2 text-xs text-gray-600 mb-3">
@@ -366,7 +419,7 @@ export default function Cart() {
                   </div>
                   <div className="pt-2 border-t border-gray-100 flex justify-between font-bold text-gray-900 text-sm">
                     <span>Total</span>
-                    <span className="text-primary">₹{finalTotal}</span>
+                    <span className="text-primary">₹{finalTotal.toFixed(2)}</span>
                   </div>
                   <div className="mt-2 text-xs text-gray-400 text-center">
                     {deliveryType === 'delivery' ? '🛵 Home Delivery' : '🏃 Self Pickup'}
@@ -388,7 +441,7 @@ export default function Cart() {
           ══════════════════════════════════════ */}
           {step === 2 && (
             <div className="md:grid md:grid-cols-5 md:gap-6">
-              <div className="md:col-span-3 space-y-3">
+              <div className="md:col-span-3 space-y-4">
 
                 {/* Order items table */}
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -408,25 +461,25 @@ export default function Cart() {
                   </div>
                   <div className="px-4 pb-3 space-y-1.5 border-t border-gray-50 pt-3">
                     <div className="flex justify-between text-xs text-gray-500">
-                      <span>Subtotal</span><span>₹{totals.subtotal}</span>
+                      <span>Subtotal</span><span>₹{safeSubtotal.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between text-xs text-gray-500">
                       <span>Delivery</span>
                       <span className={deliveryFee === 0 ? 'text-green-600 font-semibold' : ''}>
-                        {deliveryFee > 0 ? `₹${deliveryFee}` : 'FREE'}
+                        {deliveryFee > 0 ? `₹${deliveryFee.toFixed(2)}` : 'FREE'}
                       </span>
                     </div>
                     <div className="flex justify-between font-bold text-gray-900 text-sm pt-1 border-t border-gray-100">
                       <span>Total to Pay</span>
-                      <span className="text-primary">₹{finalTotal}</span>
+                      <span className="text-primary">₹{finalTotal.toFixed(2)}</span>
                     </div>
                   </div>
 
                   {/* Customer info summary */}
                   <div className="mx-4 mb-4 bg-gray-50 rounded-xl p-3 space-y-1">
                     <p className="text-xs text-gray-500">
-                      👤 <span className="font-semibold text-gray-700">{details.name}</span>
-                      &nbsp;·&nbsp; 📞 {details.phone}
+                      👤 <span className="font-semibold text-gray-700">{details.name || 'Not provided'}</span>
+                      &nbsp;·&nbsp; 📞 {details.phone || 'Not provided'}
                     </p>
                     {deliveryType === 'delivery' && details.address && (
                       <p className="text-xs text-gray-500">📍 {details.address}</p>
@@ -502,7 +555,7 @@ export default function Cart() {
               </div>
 
               {/* Place order */}
-              <div className="md:col-span-2 mt-3 md:mt-0">
+              <div className="md:col-span-2 mt-4 md:mt-0">
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 md:sticky md:top-24">
                   <div className="text-center mb-4">
                     <div className="w-14 h-14 bg-green-50 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-2">
@@ -516,7 +569,7 @@ export default function Cart() {
 
                   <div className="bg-gray-50 rounded-xl p-3 mb-4 text-center">
                     <p className="text-xs text-gray-500 mb-1">Total Amount</p>
-                    <p className="text-2xl font-bold text-primary">₹{finalTotal}</p>
+                    <p className="text-2xl font-bold text-primary">₹{finalTotal.toFixed(2)}</p>
                     <p className="text-xs text-gray-400 mt-0.5">
                       {payment === 'cash' ? '💵 Pay on delivery' :
                        payment === 'upi'  ? '📱 UPI link via WhatsApp' :
@@ -547,5 +600,5 @@ export default function Cart() {
         </div>
       </div>
     </div>
-  )
+  );
 }

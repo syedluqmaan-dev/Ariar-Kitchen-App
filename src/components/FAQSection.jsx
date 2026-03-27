@@ -7,7 +7,7 @@ const faqs = [
   },
   {
     q: 'How long does the setup take?',
-    a: 'We go live within 48 hours of receiving your menu, logo, and details. In most cases even faster. You share everything on WhatsApp and we do the rest.',
+    a: 'We go live within 72 hours of receiving your menu, logo, and details. In most cases even faster. You share everything on WhatsApp and we do the rest.',
   },
   {
     q: 'Do I need to download any app?',
@@ -15,16 +15,17 @@ const faqs = [
   },
   {
     q: 'What if I want to change my menu later?',
-    a: 'Just WhatsApp us the changes. We update your menu within 24 hours. First month of updates is free. After that it\'s ₹200 per update — or ₹500/month for unlimited changes.',
+    a: 'Just WhatsApp us your menu changes — we’ll update everything within 24 hours. No hassle, no delays. Flexible plans available.',
+
   },
   {
     q: 'Will I get a custom domain like myrestaurant.in?',
-    a: 'Yes! We can set up a custom domain for ₹800/year. Your site would be something like zaynskitchen.in instead of a generic link. Highly recommended for professionalism.',
+    a: 'Yes, we can set up a custom domain for your restaurant (like yourrestaurant.in). Domain costs vary based on availability, and we’ll guide you through the best options during setup.',
   },
   {
-    q: 'Is there a monthly fee after setup?',
-    a: 'No monthly fees. You pay ₹8,000 once and your site stays live forever. We host it on Vercel which is free. The only optional recurring cost is domain renewal at ₹800/year.',
-  },
+  q: 'Is there a monthly fee after setup?',
+  a: 'No compulsory monthly fee. Just WhatsApp us your changes whenever needed, and we’ll update your menu within 24 hours. For regular updates, we also offer convenient monthly plans.',
+},
   {
     q: 'What if customers want to pay online?',
     a: 'Currently orders go to WhatsApp where you can coordinate payment. Customers can choose Cash on Delivery or UPI. You then send them your UPI QR on WhatsApp. Clean and simple.',
@@ -44,10 +45,14 @@ export default function FAQSection() {
 
         <div className="text-center mb-10">
           <span className="text-xs font-bold text-primary uppercase tracking-widest">FAQ</span>
-          <h2 className="font-display font-bold text-secondary text-2xl md:text-4xl mt-2">
-            Questions? We've Got<br />
-            <span className="text-primary">Answers.</span>
-          </h2>
+          <h2
+        style={{ fontFamily: "'Fraunces', serif", fontWeight: 300 }}
+        className="text-['#d9520e'] text-center leading-[1.15] mb-3
+                   text-[1.7rem] sm:text-[2.1rem] md:text-[2.6rem]"
+      >
+        Questions?{' '}
+        <em style={{ fontStyle: 'italic', color: '#d9520e' }}>We've got answers.</em>
+      </h2>
         </div>
 
         <div className="space-y-2">
