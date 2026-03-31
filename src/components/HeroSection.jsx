@@ -23,7 +23,7 @@ export default function HeroSection() {
     <>
       {/* Google Fonts */}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,700;1,300&family=DM+Sans:wght@400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,700;1,300&family=DM+Sans:wght@400;500;600&display=swap');
       `}</style>
 
       <section
@@ -32,8 +32,10 @@ export default function HeroSection() {
       >
         {/* Radial glow background */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
-          <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-[600px] h-[600px]"
-            style={{ background: 'radial-gradient(circle, rgba(255,120,50,0.12) 0%, transparent 70%)' }} />
+          <div
+            className="absolute -top-20 left-1/2 -translate-x-1/2 w-[600px] h-[600px]"
+            style={{ background: 'radial-gradient(circle, rgba(255,120,50,0.12) 0%, transparent 70%)' }}
+          />
         </div>
 
         {/* ── Brand tag ── */}
@@ -104,39 +106,69 @@ export default function HeroSection() {
         </div>
 
         {/* ── CTA Buttons ── */}
-        <div className="flex flex-col xs:flex-row gap-3 justify-center z-10">
-          {/* Primary — Build yours */}
+        <div className="flex flex-col items-center gap-3 z-10 w-full max-w-xs">
+
+          {/* PRIMARY — Live demo (top, fully highlighted) */}
+          <div className="relative w-full">
+            {/* Floating pill tag above button */}
+            <div
+              className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-10
+                         bg-green-500 text-white text-[10px] font-semibold uppercase
+                         tracking-[0.08em] px-3 py-[3px] rounded-full whitespace-nowrap
+                         shadow-[0_0_12px_rgba(34,197,94,0.4)]">
+              ✦ Try it — no sign up needed
+            </div>
+
+            <Link
+              to="/menu"
+              className="flex items-center justify-center gap-2 w-full font-semibold text-[15px]
+                         text-white bg-[#ff7832]
+                         border-2 border-[rgba(255,255,255,0.15)]
+                         px-7 py-4 rounded-[14px]
+                         transition-all duration-200 active:scale-95
+                         hover:bg-[#e86920] hover:-translate-y-px
+                         hover:shadow-[0_8px_28px_rgba(255,120,50,0.45)]">
+              <span className="text-[17px] leading-none">👀</span>
+              <span>Place a real order — live demo</span>
+              <span
+                className="ml-auto text-[11px] font-medium opacity-70
+                           bg-black/20 px-2 py-0.5 rounded-md">
+                →
+              </span>
+            </Link>
+          </div>
+
+          {/* Divider */}
+          <div className="flex items-center gap-2 w-full px-1">
+            <div className="flex-1 h-px bg-[rgba(245,240,232,0.07)]" />
+            <span className="text-[11px] text-[rgba(245,240,232,0.22)] whitespace-nowrap">
+              want this for your restaurant?
+            </span>
+            <div className="flex-1 h-px bg-[rgba(245,240,232,0.07)]" />
+          </div>
+
+          {/* SECONDARY — Build yours (consult) */}
           <a
             href={waUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="group flex items-center justify-center gap-2 font-medium text-sm
-                       text-white bg-[#ff7832] px-7 py-3.5 rounded-[14px]
+            className="flex items-center justify-center gap-2 w-full font-medium text-sm
+                       text-[#ff7832] bg-transparent
+                       border border-[rgba(255,120,50,0.35)]
+                       px-7 py-3.5 rounded-[14px]
                        transition-all duration-200 active:scale-95
-                       hover:bg-[#e86920] hover:-translate-y-px
-                       shadow-[0_0_0_0_rgba(255,120,50,0)] hover:shadow-[0_8px_28px_rgba(255,120,50,0.35)]">
-            <svg viewBox="0 0 24 24" className="w-4 h-4 fill-white shrink-0">
+                       hover:bg-[rgba(255,120,50,0.08)] hover:border-[rgba(255,120,50,0.6)]
+                       hover:-translate-y-px">
+            <svg viewBox="0 0 24 24" className="w-4 h-4 fill-[#ff7832] shrink-0">
               <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
             </svg>
             Build yours — free consult
           </a>
 
-          {/* Secondary — Live demo */}
-          <Link
-            to="/menu"
-            className="flex items-center justify-center gap-2 font-medium text-sm
-                       text-[#ff7832] bg-transparent
-                       border-2 border-[#ff7832]
-                       px-7 py-3.5 rounded-[14px]
-                       transition-all duration-200 active:scale-95
-                       hover:bg-[#ff7832] hover:text-white hover:-translate-y-px
-                       hover:shadow-[0_8px_28px_rgba(255,120,50,0.35)]">
-            👀 See the live demo
-          </Link>
         </div>
 
         {/* ── Trust bar ── */}
-        <div className="flex items-center gap-2 mt-6 z-10">
+        <div className="flex items-center gap-2 mt-6 z-10 flex-wrap justify-center">
           <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
           <span className="text-[rgba(245,240,232,0.3)] text-[11px]">
             Trusted by 10+ restaurants in Bangalore
